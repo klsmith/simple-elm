@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="/generated/elm.js"></script>
+    <script type="text/javascript">
+    window.onload = () => {
+        const elmApp = Elm.Main.init({
+            node: document.getElementById('app'),
+            flags: {
+                width: window.screen.width,
+                height: window.screen.height
+            }
+        });
+
+        // LocalStorage: save
+        elmApp.ports.localStorageSavePort
+            .subscribe(({ key, value }) => {
+                localStorage.setItem(key, JSON.stringify(value));
+            });
+        // LocalStorage: load
+        elmApp.ports.localStorageLoadPort
+            .subscribe((key) => {
+                const value = localStorage.getItem(key);
+                elmApp.ports.localStorageMsgPort
+                    .send({ type: "OnLoad", key , value  });
+            });
+    }
+    </script>
+</head>
+
+<body id='app'>
+</body>
+
+</html>
