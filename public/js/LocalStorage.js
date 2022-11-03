@@ -15,32 +15,35 @@ class LocalStorage {
     }
 
 
+    log(text = '?', ...data) {
+        console.log("LocalStoragePort - " + text, data);
+    }
+
+
     send(msg) {
-        this.elmApp.ports.localStorageMsgPort.send(msg);
+        try {
+            this.elmApp.ports.localStorageMsgPort.send(msg);
+        } catch (err) {
+            log("Failed to send", msg, err);
+        }
     }
 
 
     save({ key, value }) {
         try {
-            localStorage.setItem(key, value);
+            window.localStorage.setItem(key, value);
         } catch (err) {
-            this.send({
-                type: "SaveError",
-                message: Json.stringify({ key, value, err })
-            });
+            log("Failed to save", key, value, err);
         }
     }
 
 
     load(key) {
         try {
-            const value = localStorage.getItem(key);
+            const value = window.localStorage.getItem(key);
             this.send({ type: "OnLoad", key, value });
         } catch (err) {
-            this.send({
-                type: "LoadError",
-                message: Json.stringify({ key, err })
-            });
+            log("Failed to load", key, err);
         }
     }
 

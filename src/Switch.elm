@@ -1,6 +1,6 @@
 module Switch exposing
     ( Switch(..)
-    , decode
+    , decoder
     , encode
     , fromBool
     , selectFrom
@@ -74,6 +74,6 @@ encode =
     Encode.bool << toBool
 
 
-decode : Decoder Switch
-decode =
+decoder : Decoder Switch
+decoder =
     Decode.map fromBool Decode.bool

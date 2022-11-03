@@ -24,31 +24,31 @@ type alias Theme =
 
 dark : Theme
 dark =
-    { background = zinc_900
-    , textColor = zinc_300
-    , buttonBackground = zinc_800
-    , buttonBorderColor = zinc_300
-    , buttonTextColor = zinc_300
-    , buttonBackgroundHover = zinc_300
-    , buttonBorderColorHover = zinc_50
-    , buttonTextColorHover = zinc_900
-    , evenRowTableBackground = zinc_900
-    , oddRowTableBackground = zinc_800
-    , dimTextColor = zinc_500
+    { background = neutral_900
+    , textColor = neutral_300
+    , buttonBackground = neutral_800
+    , buttonBorderColor = neutral_300
+    , buttonTextColor = neutral_300
+    , buttonBackgroundHover = neutral_300
+    , buttonBorderColorHover = neutral_50
+    , buttonTextColorHover = neutral_900
+    , evenRowTableBackground = neutral_900
+    , oddRowTableBackground = neutral_800
+    , dimTextColor = neutral_500
     }
 
 
 light : Theme
 light =
-    { background = zinc_50
-    , textColor = zinc_600
-    , buttonBackground = zinc_100
-    , buttonBorderColor = zinc_600
-    , buttonTextColor = zinc_600
-    , buttonBackgroundHover = zinc_600
-    , buttonBorderColorHover = zinc_900
-    , buttonTextColorHover = zinc_50
-    , evenRowTableBackground = zinc_50
-    , oddRowTableBackground = zinc_100
-    , dimTextColor = zinc_400
+    { background = neutral_50
+    , textColor = neutral_600
+    , buttonBackground = neutral_100
+    , buttonBorderColor = neutral_600
+    , buttonTextColor = neutral_600
+    , buttonBackgroundHover = neutral_600
+    , buttonBorderColorHover = neutral_900
+    , buttonTextColorHover = neutral_50
+    , evenRowTableBackground = neutral_50
+    , oddRowTableBackground = neutral_100
+    , dimTextColor = neutral_400
     }

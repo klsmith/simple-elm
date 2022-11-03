@@ -11,8 +11,9 @@ import Element.Region as Region
 import FeatherIcons as Icon
 import File exposing (File)
 import File.Select
+import Fonts
 import Html exposing (Html)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import LocalStorage
 import Switch exposing (Switch)
@@ -47,7 +48,8 @@ type Msg
     | FileSelected File
     | FileTextRead String
     | ToggleLight
-    | TestLoaded Value
+    | LoadLight Switch
+    | LogError String
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -56,7 +58,10 @@ init _ =
       , light = Switch.Off
       , loaded = Encode.int 0
       }
-    , Cmd.batch [ LocalStorage.load "fileText" ]
+    , Cmd.batch
+        [ LocalStorage.load "fileText"
+        , LocalStorage.load "light"
+        ]
     )
 
 
@@ -82,14 +87,21 @@ update msg model =
             )
 
         ToggleLight ->
-            ( { model | light = Switch.toggle model.light }
+            let
+                newLight =
+                    Switch.toggle model.light
+            in
+            ( { model | light = newLight }
+            , LocalStorage.save "light" <| Switch.encode newLight
+            )
+
+        LoadLight newLight ->
+            ( { model | light = newLight }
             , Cmd.none
             )
 
-        TestLoaded value ->
-            ( { model | loaded = value }
-            , Cmd.none
-            )
+        LogError errString ->
+            ( Debug.log errString model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -100,63 +112,51 @@ subscriptions model =
 handleLocalStorageMsg : LocalStorage.Msg -> Msg
 handleLocalStorageMsg lsm =
     case lsm of
-        LocalStorage.OnLoad _ value ->
-            value
-                |> attemptAsString
-                |> Maybe.map FileTextRead
-                |> Maybe.withDefault DoNothing
+        LocalStorage.OnLoad key value ->
+            case key of
+                "fileText" ->
+                    value
+                        |> attemptDecode Decode.string
+                        |> Maybe.map FileTextRead
+                        |> Maybe.withDefault DoNothing
+
+                "light" ->
+                    value
+                        |> attemptDecode Switch.decoder
+                        |> Maybe.map LoadLight
+                        |> Maybe.withDefault DoNothing
+
+                _ ->
+                    Debug.log
+                        ("Unknown Key: " ++ key)
+                        DoNothing
 
         _ ->
-            DoNothing
+            Debug.log
+                "There was an error handling local storage msg."
+                DoNothing
 
 
-attemptAsString : Value -> Maybe String
-attemptAsString value =
-    case Decode.decodeValue Decode.string value of
-        Ok string ->
-            Just string
+attemptDecode : Decoder a -> Value -> Maybe a
+attemptDecode decoder value =
+    case Decode.decodeValue decoder value of
+        Ok decoded ->
+            Just decoded
 
-        _ ->
-            Nothing
-
-
-fontBookInsanity =
-    Font.family
-        [ Font.typeface "Bookinsanity"
-        , Font.serif
-        ]
-
-
-fontScalySans =
-    Font.family
-        [ Font.typeface "Scaly Sans"
-        , Font.sansSerif
-        ]
-
-
-fontNodestoCapsCondesnsed =
-    Font.family
-        [ Font.typeface "Nodesto Caps Condensed"
-        , Font.serif
-        ]
-
-
-fontZatannaMisdirection =
-    Font.family
-        [ Font.typeface "Zatanna Misdirection"
-        , Font.sansSerif
-        ]
+        Err err ->
+            Debug.log (Decode.errorToString err)
+                Nothing
 
 
 view : Model -> Document Msg
 view model =
     let
+        { fileText, light } =
+            model
+
         theme =
             ( Theme.light, Theme.dark )
-                |> Switch.selectWith model.light
-
-        { fileText } =
-            model
+                |> Switch.selectWith light
     in
     { title = "Elm App"
     , body =
@@ -164,8 +164,8 @@ view model =
             [ width fill
             , height fill
             , padding 16
-            , Font.size 24
-            , fontScalySans
+            , Font.size 16
+            , Fonts.bookInsanity
             , Background.color theme.background
             , Font.color theme.textColor
             ]
@@ -176,10 +176,10 @@ view model =
                     , width fill
                     ]
                     [ title "D&D - CHARACTER TRACKER"
-                    , el [ alignRight ] <| lightButton model.light
+                    , el [ alignRight ] <| lightButton light
                     ]
                 , selectFileButton theme
-                , el [ fontZatannaMisdirection ]
+                , el [ Fonts.scalySans ]
                     (Util.viewFileText theme fileText)
                 ]
         ]
@@ -190,8 +190,8 @@ title : String -> Element msg
 title string =
     el
         [ Region.heading 1
-        , Font.size 48
-        , fontNodestoCapsCondesnsed
+        , Font.size 32
+        , Fonts.nodestoCapsCondensed
         ]
     <|
         text string
