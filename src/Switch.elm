@@ -1,9 +1,29 @@
-module Switch exposing (Switch(..), fromBool, selectFrom, selectWith, toBool, toggle)
+module Switch exposing
+    ( Switch(..)
+    , decode
+    , encode
+    , fromBool
+    , selectFrom
+    , selectWith
+    , toBool
+    , toggle
+    )
+
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode exposing (Value)
+
+
+
+-- TYPE
 
 
 type Switch
     = On
     | Off
+
+
+
+-- INTERFACE
 
 
 selectFrom : ( a, a ) -> Switch -> a
@@ -26,6 +46,10 @@ toggle =
     selectFrom ( Off, On )
 
 
+
+-- BOOL CONVERSION
+
+
 toBool : Switch -> Bool
 toBool =
     selectFrom ( True, False )
@@ -39,3 +63,17 @@ fromBool bool =
 
         False ->
             Off
+
+
+
+-- JSON ENCODE/DECODE
+
+
+encode : Switch -> Value
+encode =
+    Encode.bool << toBool
+
+
+decode : Decoder Switch
+decode =
+    Decode.map fromBool Decode.bool

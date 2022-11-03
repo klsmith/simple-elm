@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="fonts/stylesheet.css">
     <script type="text/javascript" src="/generated/elm.js"></script>
+    <script type="text/javascript" src="/js/LocalStorage.js"></script>
     <script type="text/javascript">
     window.onload = () => {
         const elmApp = Elm.Main.init({
@@ -14,19 +16,7 @@
                 height: window.screen.height
             }
         });
-
-        // LocalStorage: save
-        elmApp.ports.localStorageSavePort
-            .subscribe(({ key, value }) => {
-                localStorage.setItem(key, JSON.stringify(value));
-            });
-        // LocalStorage: load
-        elmApp.ports.localStorageLoadPort
-            .subscribe((key) => {
-                const value = localStorage.getItem(key);
-                elmApp.ports.localStorageMsgPort
-                    .send({ type: "OnLoad", key , value  });
-            });
+        LocalStorage.bind(elmApp);
     }
     </script>
 </head>

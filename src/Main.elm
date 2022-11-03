@@ -7,6 +7,7 @@ import Element.Border as Border
 import Element.Colors exposing (..)
 import Element.Font as Font
 import Element.Input as Input exposing (button)
+import Element.Region as Region
 import FeatherIcons as Icon
 import File exposing (File)
 import File.Select
@@ -34,8 +35,7 @@ type alias Flags =
 
 
 type alias Model =
-    { file : Maybe File
-    , fileText : Maybe String
+    { fileText : Maybe String
     , light : Switch
     , loaded : Value
     }
@@ -52,15 +52,11 @@ type Msg
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { file = Nothing
-      , fileText = Nothing
+    ( { fileText = Nothing
       , light = Switch.Off
       , loaded = Encode.int 0
       }
-    , Cmd.batch
-        [ LocalStorage.save "test" <| Encode.int 3
-        , LocalStorage.load "test"
-        ]
+    , Cmd.batch [ LocalStorage.load "fileText" ]
     )
 
 
@@ -76,13 +72,13 @@ update msg model =
             )
 
         FileSelected file ->
-            ( { model | file = Just file }
+            ( model
             , Task.perform FileTextRead <| File.toString file
             )
 
         FileTextRead fileText ->
             ( { model | fileText = Just fileText }
-            , Cmd.none
+            , LocalStorage.save "fileText" <| Encode.string fileText
             )
 
         ToggleLight ->
@@ -91,20 +87,65 @@ update msg model =
             )
 
         TestLoaded value ->
-            ( { model | loaded = value }, Cmd.none )
+            ( { model | loaded = value }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    LocalStorage.subscribe
-        (\lsm ->
-            case lsm of
-                LocalStorage.OnLoad _ value ->
-                    TestLoaded value
+    LocalStorage.subscribe handleLocalStorageMsg
 
-                _ ->
-                    DoNothing
-        )
+
+handleLocalStorageMsg : LocalStorage.Msg -> Msg
+handleLocalStorageMsg lsm =
+    case lsm of
+        LocalStorage.OnLoad _ value ->
+            value
+                |> attemptAsString
+                |> Maybe.map FileTextRead
+                |> Maybe.withDefault DoNothing
+
+        _ ->
+            DoNothing
+
+
+attemptAsString : Value -> Maybe String
+attemptAsString value =
+    case Decode.decodeValue Decode.string value of
+        Ok string ->
+            Just string
+
+        _ ->
+            Nothing
+
+
+fontBookInsanity =
+    Font.family
+        [ Font.typeface "Bookinsanity"
+        , Font.serif
+        ]
+
+
+fontScalySans =
+    Font.family
+        [ Font.typeface "Scaly Sans"
+        , Font.sansSerif
+        ]
+
+
+fontNodestoCapsCondesnsed =
+    Font.family
+        [ Font.typeface "Nodesto Caps Condensed"
+        , Font.serif
+        ]
+
+
+fontZatannaMisdirection =
+    Font.family
+        [ Font.typeface "Zatanna Misdirection"
+        , Font.sansSerif
+        ]
 
 
 view : Model -> Document Msg
@@ -114,7 +155,7 @@ view model =
             ( Theme.light, Theme.dark )
                 |> Switch.selectWith model.light
 
-        { file, fileText } =
+        { fileText } =
             model
     in
     { title = "Elm App"
@@ -123,7 +164,8 @@ view model =
             [ width fill
             , height fill
             , padding 16
-            , Font.family [ Font.monospace ]
+            , Font.size 24
+            , fontScalySans
             , Background.color theme.background
             , Font.color theme.textColor
             ]
@@ -133,15 +175,26 @@ view model =
                     [ spacing 16
                     , width fill
                     ]
-                    [ selectFileButton theme
-                    , Util.viewFileMetaData theme file
+                    [ title "D&D - CHARACTER TRACKER"
                     , el [ alignRight ] <| lightButton model.light
                     ]
-                , text <| Encode.encode 0 model.loaded
-                , Util.viewFileText theme fileText
+                , selectFileButton theme
+                , el [ fontZatannaMisdirection ]
+                    (Util.viewFileText theme fileText)
                 ]
         ]
     }
+
+
+title : String -> Element msg
+title string =
+    el
+        [ Region.heading 1
+        , Font.size 48
+        , fontNodestoCapsCondesnsed
+        ]
+    <|
+        text string
 
 
 lightButton : Switch -> Element Msg

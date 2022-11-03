@@ -5380,42 +5380,9 @@ var $elm$json$Json$Encode$int = _Json_wrap;
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$LocalStorage$localStorageLoadPort = _Platform_outgoingPort('localStorageLoadPort', $elm$json$Json$Encode$string);
 var $author$project$LocalStorage$load = $author$project$LocalStorage$localStorageLoadPort;
-var $elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v0, obj) {
-					var k = _v0.a;
-					var v = _v0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(_Utils_Tuple0),
-			pairs));
-};
-var $author$project$LocalStorage$localStorageSavePort = _Platform_outgoingPort(
-	'localStorageSavePort',
-	function ($) {
-		return $elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'key',
-					$elm$json$Json$Encode$string($.key)),
-					_Utils_Tuple2(
-					'value',
-					$elm$core$Basics$identity($.value))
-				]));
-	});
-var $author$project$LocalStorage$save = F2(
-	function (key, value) {
-		return $author$project$LocalStorage$localStorageSavePort(
-			{key: key, value: value});
-	});
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
-			file: $elm$core$Maybe$Nothing,
 			fileText: $elm$core$Maybe$Nothing,
 			light: $author$project$Switch$Off,
 			loaded: $elm$json$Json$Encode$int(0)
@@ -5423,16 +5390,56 @@ var $author$project$Main$init = function (_v0) {
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
-					A2(
-					$author$project$LocalStorage$save,
-					'test',
-					$elm$json$Json$Encode$int(3)),
-					$author$project$LocalStorage$load('test')
+					$author$project$LocalStorage$load('fileText')
 				])));
 };
 var $author$project$Main$DoNothing = {$: 'DoNothing'};
-var $author$project$Main$TestLoaded = function (a) {
-	return {$: 'TestLoaded', a: a};
+var $author$project$Main$FileTextRead = function (a) {
+	return {$: 'FileTextRead', a: a};
+};
+var $elm$json$Json$Decode$decodeValue = _Json_run;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$attemptAsString = function (value) {
+	var _v0 = A2($elm$json$Json$Decode$decodeValue, $elm$json$Json$Decode$string, value);
+	if (_v0.$ === 'Ok') {
+		var string = _v0.a;
+		return $elm$core$Maybe$Just(string);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Main$handleLocalStorageMsg = function (lsm) {
+	if (lsm.$ === 'OnLoad') {
+		var value = lsm.b;
+		return A2(
+			$elm$core$Maybe$withDefault,
+			$author$project$Main$DoNothing,
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Main$FileTextRead,
+				$author$project$Main$attemptAsString(value)));
+	} else {
+		return $author$project$Main$DoNothing;
+	}
 };
 var $elm$core$Basics$composeL = F3(
 	function (g, f, x) {
@@ -5442,7 +5449,6 @@ var $elm$core$Basics$composeL = F3(
 var $author$project$LocalStorage$ParseError = function (a) {
 	return {$: 'ParseError', a: a};
 };
-var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $elm$json$Json$Decode$andThen = _Json_andThen;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $author$project$LocalStorage$LoadError = function (a) {
@@ -5456,7 +5462,6 @@ var $author$project$LocalStorage$SaveError = function (a) {
 	return {$: 'SaveError', a: a};
 };
 var $elm$json$Json$Decode$fail = _Json_fail;
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $elm$json$Json$Decode$value = _Json_decodeValue;
 var $author$project$LocalStorage$msgDecoderFromType = function (msgType) {
 	switch (msgType) {
@@ -5500,21 +5505,10 @@ var $author$project$LocalStorage$subscribe = function (toExternalMsg) {
 		A2($elm$core$Basics$composeL, toExternalMsg, $author$project$LocalStorage$decodeMsg));
 };
 var $author$project$Main$subscriptions = function (model) {
-	return $author$project$LocalStorage$subscribe(
-		function (lsm) {
-			if (lsm.$ === 'OnLoad') {
-				var value = lsm.b;
-				return $author$project$Main$TestLoaded(value);
-			} else {
-				return $author$project$Main$DoNothing;
-			}
-		});
+	return $author$project$LocalStorage$subscribe($author$project$Main$handleLocalStorageMsg);
 };
 var $author$project$Main$FileSelected = function (a) {
 	return {$: 'FileSelected', a: a};
-};
-var $author$project$Main$FileTextRead = function (a) {
-	return {$: 'FileTextRead', a: a};
 };
 var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
@@ -5528,6 +5522,38 @@ var $elm$file$File$Select$file = F2(
 			_File_uploadOne(mimes));
 	});
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $author$project$LocalStorage$localStorageSavePort = _Platform_outgoingPort(
+	'localStorageSavePort',
+	function ($) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'key',
+					$elm$json$Json$Encode$string($.key)),
+					_Utils_Tuple2(
+					'value',
+					$elm$core$Basics$identity($.value))
+				]));
+	});
+var $author$project$LocalStorage$save = F2(
+	function (key, value) {
+		return $author$project$LocalStorage$localStorageSavePort(
+			{key: key, value: value});
+	});
 var $elm$file$File$toString = _File_toString;
 var $author$project$Switch$On = {$: 'On'};
 var $author$project$Switch$selectFrom = F2(
@@ -5558,11 +5584,7 @@ var $author$project$Main$update = F2(
 			case 'FileSelected':
 				var file = msg.a;
 				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							file: $elm$core$Maybe$Just(file)
-						}),
+					model,
 					A2(
 						$elm$core$Task$perform,
 						$author$project$Main$FileTextRead,
@@ -5575,7 +5597,10 @@ var $author$project$Main$update = F2(
 						{
 							fileText: $elm$core$Maybe$Just(fileText)
 						}),
-					$elm$core$Platform$Cmd$none);
+					A2(
+						$author$project$LocalStorage$save,
+						'fileText',
+						$elm$json$Json$Encode$string(fileText)));
 			case 'ToggleLight':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -5831,15 +5856,6 @@ var $mdgriffith$elm_ui$Internal$Model$transformClass = function (transform) {
 				'tfrm-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(tx) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(ty) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(tz) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(sx) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(sy) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(sz) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(ox) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(oy) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(oz) + ('-' + $mdgriffith$elm_ui$Internal$Model$floatClass(angle))))))))))))))))))));
 	}
 };
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $mdgriffith$elm_ui$Internal$Model$getStyleName = function (style) {
 	switch (style.$) {
 		case 'Shadows':
@@ -6162,16 +6178,6 @@ var $mdgriffith$elm_ui$Internal$Model$formatBoxShadow = function (shadow) {
 					$mdgriffith$elm_ui$Internal$Model$formatColor(shadow.color))
 				])));
 };
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $elm$core$Tuple$mapFirst = F2(
 	function (func, _v0) {
 		var x = _v0.a;
@@ -11623,6 +11629,10 @@ var $mdgriffith$elm_ui$Element$el = F2(
 				_List_fromArray(
 					[child])));
 	});
+var $mdgriffith$elm_ui$Internal$Model$Fill = function (a) {
+	return {$: 'Fill', a: a};
+};
+var $mdgriffith$elm_ui$Element$fill = $mdgriffith$elm_ui$Internal$Model$Fill(1);
 var $mdgriffith$elm_ui$Internal$Model$FontFamily = F2(
 	function (a, b) {
 		return {$: 'FontFamily', a: a, b: b};
@@ -11676,10 +11686,24 @@ var $mdgriffith$elm_ui$Element$Font$family = function (families) {
 			A3($elm$core$List$foldl, $mdgriffith$elm_ui$Internal$Model$renderFontClassName, 'ff-', families),
 			families));
 };
-var $mdgriffith$elm_ui$Internal$Model$Fill = function (a) {
-	return {$: 'Fill', a: a};
+var $mdgriffith$elm_ui$Internal$Model$SansSerif = {$: 'SansSerif'};
+var $mdgriffith$elm_ui$Element$Font$sansSerif = $mdgriffith$elm_ui$Internal$Model$SansSerif;
+var $mdgriffith$elm_ui$Internal$Model$Typeface = function (a) {
+	return {$: 'Typeface', a: a};
 };
-var $mdgriffith$elm_ui$Element$fill = $mdgriffith$elm_ui$Internal$Model$Fill(1);
+var $mdgriffith$elm_ui$Element$Font$typeface = $mdgriffith$elm_ui$Internal$Model$Typeface;
+var $author$project$Main$fontScalySans = $mdgriffith$elm_ui$Element$Font$family(
+	_List_fromArray(
+		[
+			$mdgriffith$elm_ui$Element$Font$typeface('Scaly Sans'),
+			$mdgriffith$elm_ui$Element$Font$sansSerif
+		]));
+var $author$project$Main$fontZatannaMisdirection = $mdgriffith$elm_ui$Element$Font$family(
+	_List_fromArray(
+		[
+			$mdgriffith$elm_ui$Element$Font$typeface('Zatanna Misdirection'),
+			$mdgriffith$elm_ui$Element$Font$sansSerif
+		]));
 var $mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
 	function (a, b) {
 		return {$: 'OnlyDynamic', a: a, b: b};
@@ -11826,10 +11850,6 @@ var $mdgriffith$elm_ui$Internal$Model$renderRoot = F3(
 	});
 var $mdgriffith$elm_ui$Internal$Model$FontSize = function (a) {
 	return {$: 'FontSize', a: a};
-};
-var $mdgriffith$elm_ui$Internal$Model$SansSerif = {$: 'SansSerif'};
-var $mdgriffith$elm_ui$Internal$Model$Typeface = function (a) {
-	return {$: 'Typeface', a: a};
 };
 var $mdgriffith$elm_ui$Internal$Flag$fontSize = $mdgriffith$elm_ui$Internal$Flag$flag(4);
 var $mdgriffith$elm_ui$Internal$Model$rootStyle = function () {
@@ -12285,8 +12305,6 @@ var $author$project$Main$lightButton = function (light) {
 			onPress: $elm$core$Maybe$Just($author$project$Main$ToggleLight)
 		});
 };
-var $mdgriffith$elm_ui$Internal$Model$Monospace = {$: 'Monospace'};
-var $mdgriffith$elm_ui$Element$Font$monospace = $mdgriffith$elm_ui$Internal$Model$Monospace;
 var $mdgriffith$elm_ui$Internal$Model$AsRow = {$: 'AsRow'};
 var $mdgriffith$elm_ui$Internal$Model$asRow = $mdgriffith$elm_ui$Internal$Model$AsRow;
 var $mdgriffith$elm_ui$Element$row = F2(
@@ -12504,6 +12522,12 @@ var $author$project$Main$selectFileButton = function (theme) {
 			onPress: $elm$core$Maybe$Just($author$project$Main$OpenJsonButtonPressed)
 		});
 };
+var $mdgriffith$elm_ui$Element$Font$size = function (i) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$fontSize,
+		$mdgriffith$elm_ui$Internal$Model$FontSize(i));
+};
 var $mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
 	function (a, b, c) {
 		return {$: 'SpacingStyle', a: a, b: b, c: c};
@@ -12523,42 +12547,29 @@ var $mdgriffith$elm_ui$Element$spacing = function (x) {
 			x,
 			x));
 };
-var $elm$file$File$lastModified = _File_lastModified;
-var $elm$file$File$mime = _File_mime;
-var $elm$file$File$name = _File_name;
-var $elm$time$Time$posixToMillis = function (_v0) {
-	var millis = _v0.a;
-	return millis;
+var $mdgriffith$elm_ui$Internal$Model$Serif = {$: 'Serif'};
+var $mdgriffith$elm_ui$Element$Font$serif = $mdgriffith$elm_ui$Internal$Model$Serif;
+var $author$project$Main$fontNodestoCapsCondesnsed = $mdgriffith$elm_ui$Element$Font$family(
+	_List_fromArray(
+		[
+			$mdgriffith$elm_ui$Element$Font$typeface('Nodesto Caps Condensed'),
+			$mdgriffith$elm_ui$Element$Font$serif
+		]));
+var $mdgriffith$elm_ui$Internal$Model$Heading = function (a) {
+	return {$: 'Heading', a: a};
 };
-var $elm$file$File$size = _File_size;
-var $author$project$Util$viewFileMetaData = F2(
-	function (theme, maybeFile) {
-		if (maybeFile.$ === 'Just') {
-			var file = maybeFile.a;
-			return A2(
-				$mdgriffith$elm_ui$Element$row,
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$spacing(16)
-					]),
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$text(
-						$elm$file$File$name(file)),
-						$mdgriffith$elm_ui$Element$text(
-						$elm$file$File$mime(file)),
-						$mdgriffith$elm_ui$Element$text(
-						$elm$core$String$fromInt(
-							$elm$file$File$size(file))),
-						$mdgriffith$elm_ui$Element$text(
-						$elm$core$String$fromInt(
-							$elm$time$Time$posixToMillis(
-								$elm$file$File$lastModified(file))))
-					]));
-		} else {
-			return $mdgriffith$elm_ui$Element$text('No File Selected...');
-		}
-	});
+var $mdgriffith$elm_ui$Element$Region$heading = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Describe, $mdgriffith$elm_ui$Internal$Model$Heading);
+var $author$project$Main$title = function (string) {
+	return A2(
+		$mdgriffith$elm_ui$Element$el,
+		_List_fromArray(
+			[
+				$mdgriffith$elm_ui$Element$Region$heading(1),
+				$mdgriffith$elm_ui$Element$Font$size(48),
+				$author$project$Main$fontNodestoCapsCondesnsed
+			]),
+		$mdgriffith$elm_ui$Element$text(string));
+};
 var $elm$core$String$lines = _String_lines;
 var $elm$core$Basics$modBy = _Basics_modBy;
 var $mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
@@ -12626,7 +12637,6 @@ var $author$project$Main$view = function (model) {
 		model.light,
 		_Utils_Tuple2($author$project$Theme$light, $author$project$Theme$dark));
 	var _v0 = model;
-	var file = _v0.file;
 	var fileText = _v0.fileText;
 	return {
 		body: _List_fromArray(
@@ -12638,9 +12648,8 @@ var $author$project$Main$view = function (model) {
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$padding(16),
-						$mdgriffith$elm_ui$Element$Font$family(
-						_List_fromArray(
-							[$mdgriffith$elm_ui$Element$Font$monospace])),
+						$mdgriffith$elm_ui$Element$Font$size(24),
+						$author$project$Main$fontScalySans,
 						$mdgriffith$elm_ui$Element$Background$color(theme.background),
 						$mdgriffith$elm_ui$Element$Font$color(theme.textColor)
 					]),
@@ -12662,17 +12671,19 @@ var $author$project$Main$view = function (model) {
 								]),
 							_List_fromArray(
 								[
-									$author$project$Main$selectFileButton(theme),
-									A2($author$project$Util$viewFileMetaData, theme, file),
+									$author$project$Main$title('D&D - CHARACTER TRACKER'),
 									A2(
 									$mdgriffith$elm_ui$Element$el,
 									_List_fromArray(
 										[$mdgriffith$elm_ui$Element$alignRight]),
 									$author$project$Main$lightButton(model.light))
 								])),
-							$mdgriffith$elm_ui$Element$text(
-							A2($elm$json$Json$Encode$encode, 0, model.loaded)),
-							A2($author$project$Util$viewFileText, theme, fileText)
+							$author$project$Main$selectFileButton(theme),
+							A2(
+							$mdgriffith$elm_ui$Element$el,
+							_List_fromArray(
+								[$author$project$Main$fontZatannaMisdirection]),
+							A2($author$project$Util$viewFileText, theme, fileText))
 						])))
 			]),
 		title: 'Elm App'

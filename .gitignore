@@ -1,0 +1,9 @@
+# elm ignores
+elm-stuff
+repl-temp-*
+
+# fonts that are grabbed from a nested git repo
+public/fonts
+
+# generated stuff
+public/generated

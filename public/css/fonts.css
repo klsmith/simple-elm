@@ -1,0 +1,11 @@
+@font-face {
+    font-family: "Bookinsanity";
+    src: url("../fonts/Bookinsanity/Bookinsanity.otf") format("opentype");
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "Mr Eaves Small Caps";
+    src: url("../fonts/Mr Eaves/Mr Eaves Small Caps.otf") format("opentype");
+    font-weight: normal;
+}
