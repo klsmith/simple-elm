@@ -1,8 +1,10 @@
 module Fonts exposing (..)
 
+import Element exposing (Attribute)
 import Element.Font as Font
 
 
+bookInsanity : Attribute msg
 bookInsanity =
     Font.family
         [ Font.typeface "Bookinsanity"
@@ -10,6 +12,7 @@ bookInsanity =
         ]
 
 
+scalySans : Attribute msg
 scalySans =
     Font.family
         [ Font.typeface "Scaly Sans"
@@ -17,6 +20,7 @@ scalySans =
         ]
 
 
+nodestoCapsCondensed : Attribute msg
 nodestoCapsCondensed =
     Font.family
         [ Font.typeface "Nodesto Caps Condensed"
@@ -24,6 +28,7 @@ nodestoCapsCondensed =
         ]
 
 
+zatannaMisdirection : Attribute msg
 zatannaMisdirection =
     Font.family
         [ Font.typeface "Zatanna Misdirection"

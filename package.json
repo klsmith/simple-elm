@@ -1,6 +1,6 @@
 {
   "scripts": {
     "build": "npx elm@latest make src/Main.elm --output=public/generated/elm.js",
-    "reactor": "npx elm-live@latest src/Main.elm -o -h --dir=public -- --output=public/generated/elm.js"
+    "reactor": "npx elm-live@latest src/Main.elm -o --dir=public -- --output=public/generated/elm.js"
   }
 }

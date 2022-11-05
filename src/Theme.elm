@@ -1,10 +1,7 @@
 module Theme exposing (Theme, dark, light)
 
 import Element
-import Element.Background as Background
-import Element.Border as Border
 import Element.Colors exposing (..)
-import Element.Font as Font
 
 
 type alias Theme =

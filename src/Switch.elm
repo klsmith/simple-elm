@@ -57,12 +57,11 @@ toBool =
 
 fromBool : Bool -> Switch
 fromBool bool =
-    case bool of
-        True ->
-            On
+    if bool then
+        On
 
-        False ->
-            Off
+    else
+        Off
 
 
 

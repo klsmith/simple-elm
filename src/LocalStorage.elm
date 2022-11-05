@@ -1,8 +1,7 @@
-port module LocalStorage exposing (Msg(..), load, save, subscribe)
+port module LocalStorage exposing (load, save, subscribe)
 
 import Json.Decode as Decode exposing (Decoder, Error, Value, andThen, decodeValue, field, string, value)
 import Json.Encode as Encode
-import Result
 
 
 
@@ -16,15 +15,6 @@ port localStorageLoadPort : String -> Cmd msg
 
 
 port localStorageMsgPort : (Value -> msg) -> Sub msg
-
-
-
--- TYPES
-
-
-type Msg
-    = OnLoad String Value
-    | ParseError Error
 
 
 
@@ -44,41 +34,19 @@ load =
     localStorageLoadPort
 
 
-subscribe : (Msg -> msg) -> Sub msg
+subscribe : (Result Decode.Error ( String, Value ) -> msg) -> Sub msg
 subscribe toExternalMsg =
     localStorageMsgPort
-        (toExternalMsg << decodeMsg)
+        (toExternalMsg << decodeValue msgDecoder)
 
 
-decodeMsg : Value -> Msg
-decodeMsg value =
-    case decodeValue msgDecoder value of
-        Ok msg ->
-            msg
-
-        Err err ->
-            ParseError err
-
-
-msgDecoder : Decoder Msg
+msgDecoder : Decoder ( String, Value )
 msgDecoder =
-    field "type" string
-        |> andThen msgDecoderFromType
-
-
-msgDecoderFromType : String -> Decoder Msg
-msgDecoderFromType msgType =
-    case msgType of
-        "OnLoad" ->
-            Decode.map2 OnLoad
-                (field "key" string)
-                (field "value" string
-                    |> andThen decodeStringAsValue
-                )
-
-        _ ->
-            Decode.fail
-                ("Unknown Message Type: " ++ msgType)
+    Decode.map2 Tuple.pair
+        (field "key" string)
+        (field "value" string
+            |> andThen decodeStringAsValue
+        )
 
 
 decodeStringAsValue : String -> Decoder Value

@@ -6,13 +6,12 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Colors exposing (..)
 import Element.Font as Font
-import Element.Input as Input exposing (button)
+import Element.Input as Input
 import Element.Region as Region
 import FeatherIcons as Icon
 import File exposing (File)
 import File.Select
 import Fonts
-import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import LocalStorage
@@ -22,6 +21,7 @@ import Theme exposing (Theme)
 import Util
 
 
+main : Program Flags Model Msg
 main =
     Browser.document
         { init = init
@@ -49,7 +49,6 @@ type Msg
     | FileTextRead String
     | ToggleLight
     | LoadLight Switch
-    | LogError String
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -100,19 +99,16 @@ update msg model =
             , Cmd.none
             )
 
-        LogError errString ->
-            ( Debug.log errString model, Cmd.none )
-
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    LocalStorage.subscribe handleLocalStorageMsg
+subscriptions _ =
+    LocalStorage.subscribe handleLocalStorageResult
 
 
-handleLocalStorageMsg : LocalStorage.Msg -> Msg
-handleLocalStorageMsg lsm =
-    case lsm of
-        LocalStorage.OnLoad key value ->
+handleLocalStorageResult : Result Decode.Error ( String, Value ) -> Msg
+handleLocalStorageResult result =
+    case result of
+        Ok ( key, value ) ->
             case key of
                 "fileText" ->
                     value
@@ -131,9 +127,9 @@ handleLocalStorageMsg lsm =
                         ("Unknown Key: " ++ key)
                         DoNothing
 
-        _ ->
+        Err err ->
             Debug.log
-                "There was an error handling local storage msg."
+                (Decode.errorToString err)
                 DoNothing
 
 
@@ -176,7 +172,7 @@ view model =
                     , width fill
                     ]
                     [ title "D&D - CHARACTER TRACKER"
-                    , el [ alignRight ] <| lightButton light
+                    , el [ alignRight ] <| lightSwitchButton light
                     ]
                 , selectFileButton theme
                 , el [ Fonts.scalySans ]
@@ -197,8 +193,8 @@ title string =
         text string
 
 
-lightButton : Switch -> Element Msg
-lightButton light =
+lightSwitchButton : Switch -> Element Msg
+lightSwitchButton light =
     Input.button [ padding 8 ]
         { onPress = Just ToggleLight
         , label =
